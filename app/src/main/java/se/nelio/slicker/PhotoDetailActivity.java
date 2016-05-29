@@ -3,13 +3,13 @@ package se.nelio.slicker;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -23,13 +23,15 @@ import com.squareup.picasso.Picasso;
  */
 public class PhotoDetailActivity extends AppCompatActivity {
 
+    public static final String EXTRA_URL = "EXTRA_URL";
+
     private static final String TAG = "PhotoDetail";
 
     /**
      * Some older devices needs a small delay between UI widget updates
      * and a change of the status and navigation bar.
      */
-    private static final int UI_ANIMATION_DELAY = 1000;
+    private static final int UI_ANIMATION_DELAY = 3000;
     private final Handler mHideHandler = new Handler();
 
     private View mContentView;
@@ -61,30 +63,33 @@ public class PhotoDetailActivity extends AppCompatActivity {
         mProgressBar = (ProgressBar) findViewById(R.id.progress_content);
         mImageView = (ImageView) findViewById(R.id.image_content);
 
-        new Picasso.Builder(this).listener(new Picasso.Listener() {
-            @Override
-            public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
-                Log.w(TAG, "Loading image failed: " + uri, exception);
-            }
-        }).build()
-               .load("http://i.imgur.com/DvpvklR.png")
-               .into(mImageView, new com.squareup.picasso.Callback() {
-                   @Override
-                   public void onSuccess() {
-                       onFinished();
-                   }
+        final String url = getIntent().getStringExtra(EXTRA_URL);
+        if ( !TextUtils.isEmpty(url)) {
+            new Picasso.Builder(this).listener(new Picasso.Listener() {
+                @Override
+                public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
+                    Log.w(TAG, "Loading image failed: " + uri, exception);
+                }
+            }).build()
+                    .load(url)
+                    .into(mImageView, new com.squareup.picasso.Callback() {
+                        @Override
+                        public void onSuccess() {
+                            onFinished();
+                        }
 
-                   @Override
-                   public void onError() {
-                       onFinished();
-                       Toast.makeText(PhotoDetailActivity.this, R.string.error_load_photo_failed, Toast.LENGTH_SHORT).show();
-                   }
+                        @Override
+                        public void onError() {
+                            onFinished();
+                            Toast.makeText(PhotoDetailActivity.this, R.string.error_load_photo_failed, Toast.LENGTH_SHORT).show();
+                        }
 
-                   private void onFinished() {
-                       mProgressBar.setVisibility(View.GONE);
-                       mContentView.setVisibility(View.VISIBLE);
-                   }
-               });
+                        private void onFinished() {
+                            mProgressBar.setVisibility(View.GONE);
+                            mContentView.setVisibility(View.VISIBLE);
+                        }
+                    });
+        }
 
 
         // Set up the user interaction to manually show or hide the system UI.
