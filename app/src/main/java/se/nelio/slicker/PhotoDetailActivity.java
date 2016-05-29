@@ -1,66 +1,109 @@
 package se.nelio.slicker;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.widget.Toolbar;
-import android.view.View;
-import android.support.v7.app.AppCompatActivity;
+import android.net.Uri;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
 
 /**
- * An activity representing a single Photo detail screen. This
- * activity is only used narrow width devices. On tablet-size devices,
- * item details are presented side-by-side with a list of items
- * in a {@link PhotoListActivity}.
+ * An example full-screen activity that shows and hides the system UI (i.e.
+ * status bar and navigation/system bar) with user interaction.
  */
 public class PhotoDetailActivity extends AppCompatActivity {
+
+    private static final String TAG = "PhotoDetail";
+
+    /**
+     * Some older devices needs a small delay between UI widget updates
+     * and a change of the status and navigation bar.
+     */
+    private static final int UI_ANIMATION_DELAY = 1000;
+    private final Handler mHideHandler = new Handler();
+
+    private View mContentView;
+    private ProgressBar mProgressBar;
+    private ImageView mImageView;
+
+    private boolean mVisible;
+    private final Runnable mHideRunnable = new Runnable() {
+        @Override
+        public void run() {
+            hide();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_photo_detail);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
-        setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        setContentView(R.layout.activity_photo_detail);
 
         // Show the Up button in the action bar.
-        ActionBar actionBar = getSupportActionBar();
+        final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        // savedInstanceState is non-null when there is fragment state
-        // saved from previous configurations of this activity
-        // (e.g. when rotating the screen from portrait to landscape).
-        // In this case, the fragment will automatically be re-added
-        // to its container so we don't need to manually add it.
-        // For more information, see the Fragments API guide at:
-        //
-        // http://developer.android.com/guide/components/fragments.html
-        //
-        if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
-            Bundle arguments = new Bundle();
-            arguments.putString(PhotoDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(PhotoDetailFragment.ARG_ITEM_ID));
-            PhotoDetailFragment fragment = new PhotoDetailFragment();
-            fragment.setArguments(arguments);
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.photo_detail_container, fragment)
-                    .commit();
-        }
+        mVisible = true;
+        mContentView = findViewById(R.id.fullscreen_content);
+        mProgressBar = (ProgressBar) findViewById(R.id.progress_content);
+        mImageView = (ImageView) findViewById(R.id.image_content);
+
+        new Picasso.Builder(this).listener(new Picasso.Listener() {
+            @Override
+            public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
+                Log.w(TAG, "Loading image failed: " + uri, exception);
+            }
+        }).build()
+               .load("http://i.imgur.com/DvpvklR.png")
+               .into(mImageView, new com.squareup.picasso.Callback() {
+                   @Override
+                   public void onSuccess() {
+                       onFinished();
+                   }
+
+                   @Override
+                   public void onError() {
+                       onFinished();
+                       Toast.makeText(PhotoDetailActivity.this, R.string.error_load_photo_failed, Toast.LENGTH_SHORT).show();
+                   }
+
+                   private void onFinished() {
+                       mProgressBar.setVisibility(View.GONE);
+                       mContentView.setVisibility(View.VISIBLE);
+                   }
+               });
+
+
+        // Set up the user interaction to manually show or hide the system UI.
+        mContentView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggle();
+            }
+        });
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        // Trigger the initial hide() shortly after the activity has been
+        // created, to briefly hint to the user that UI controls
+        // are available.
+        delayedHide(UI_ANIMATION_DELAY);
     }
 
     @Override
@@ -77,5 +120,65 @@ public class PhotoDetailActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void toggle() {
+        if (mVisible) {
+            hide();
+        } else {
+            show();
+        }
+    }
+
+    @SuppressLint("InlinedApi")
+    private void hide() {
+        // Hide UI elements
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
+
+        // Delayed removal of system bar
+
+        // Note that some of these constants are new as of API 16 (Jelly Bean)
+        // and API 19 (KitKat). It is safe to use them, as they are inlined
+        // at compile-time and do nothing on earlier devices.
+        mContentView.setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_LOW_PROFILE
+          | View.SYSTEM_UI_FLAG_FULLSCREEN
+          | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+          | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+          | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+          | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        );
+
+        mVisible = false;
+    }
+
+    @SuppressLint("InlinedApi")
+    private void show() {
+        mVisible = true;
+
+        // Show the system bar
+        mContentView.setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+          | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+          | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        );
+
+        // Show UI elements
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.show();
+        }
+    }
+
+    /**
+     * Schedules a call to hide() in [delay] milliseconds, canceling any
+     * previously scheduled calls.
+     */
+    private void delayedHide(int delayMillis) {
+        mHideHandler.removeCallbacks(mHideRunnable);
+        mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
 }
