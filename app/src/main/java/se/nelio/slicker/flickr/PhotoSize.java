@@ -11,19 +11,30 @@ package se.nelio.slicker.flickr;
  */
 public enum PhotoSize {
 
-    M("m"),
-    S("s"),
-    T("t"),
-    Z("z"),
-    B("b");
+    S("s", 75),
+    T("t", 100),
+    M("m", 240),
+    Z("z", 640),
+    B("b", 1024);
 
     private final String id;
+    private final int longestSide;
 
-    PhotoSize(final String id) {
+    PhotoSize(final String id, final int longestSide) {
         this.id = id;
+        this.longestSide = longestSide;
     }
 
     public String id() {
         return id;
+    }
+
+    public static PhotoSize forWidth(final int width) {
+        for (final PhotoSize candidate : values()) {
+            if (candidate.longestSide > width) {
+                return candidate;
+            }
+        }
+        return B;
     }
 }
