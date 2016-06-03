@@ -76,29 +76,30 @@ public class PhotoRecyclerViewAdapter extends RecyclerView.Adapter<PhotoViewHold
             mPages = Integer.MAX_VALUE;
         }
         if (hasMore()) {
+            final Call<SearchResult> searchCall;
             if ( ! TextUtils.isEmpty(query)) {
-                final Call<SearchResult> searchCall = mPhotosApi.search(query, mPage + 1);
-                searchCall.enqueue(new Callback<SearchResult>() {
-                    @Override
-                    public void onResponse(final Call<SearchResult> call, final Response<SearchResult> response) {
-                        if (null != response) {
-                            final SearchResult searchResult = response.body();
-                            if (null != searchResult) {
-                                loadMoreResult(reset, searchResult.photos);
-                            }
-                            // TODO: error body
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<SearchResult> call, Throwable t) {
-                        // TODO: user friendly message
-                        Toast.makeText(mContext, t.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+                searchCall = mPhotosApi.search(query, mPage + 1);
             } else {
-                // TODO: Implement 'getRecent' Flickr API when no search query is available #19
+                searchCall = mPhotosApi.getRecent(mPage + 1);
             }
+            searchCall.enqueue(new Callback<SearchResult>() {
+                @Override
+                public void onResponse(final Call<SearchResult> call, final Response<SearchResult> response) {
+                    if (null != response) {
+                        final SearchResult searchResult = response.body();
+                        if (null != searchResult) {
+                            loadMoreResult(reset, searchResult.photos);
+                        }
+                        // TODO: error body
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<SearchResult> call, Throwable t) {
+                    // TODO: user friendly message
+                    Toast.makeText(mContext, t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 

@@ -38,24 +38,38 @@ public class PhotosApiTest {
         final SearchResult searchResult = searchResultCall.execute().body();
 
         assertThat(searchResult, is(not(nullValue(SearchResult.class))));
-        assertThat(searchResult.photos, is(not(nullValue(Photos.class))));
-        assertThat(searchResult.photos.page, is(equalTo(1)));
-        assertThat(searchResult.photos.pages, is(greaterThanOrEqualTo(1)));
-        assertThat(searchResult.photos.perpage, is(100));
-        assertThat(searchResult.photos.total, is(greaterThanOrEqualTo(1)));
-        assertThat(searchResult.photos.photo, is(not(nullValue(List.class))));
+        verifyPhotos(searchResult.photos);
+    }
 
-        assertThat(searchResult.photos.photo, is(not(empty())));
-        for (final Photo photo : searchResult.photos.photo) {
+    @Test
+    public void getRecent_on_real_server() throws IOException {
+
+        final Call<SearchResult> searchResultCall = photosApi.getRecent(1);
+        final SearchResult searchResult = searchResultCall.execute().body();
+
+        assertThat(searchResult, is(not(nullValue(SearchResult.class))));
+        verifyPhotos(searchResult.photos);
+    }
+
+    private static void verifyPhotos(final Photos photos) throws IOException {
+        assertThat(photos, is(not(nullValue(Photos.class))));
+        assertThat(photos.page, is(equalTo(1)));
+        assertThat(photos.pages, is(greaterThanOrEqualTo(1)));
+        assertThat(photos.perpage, is(100));
+        assertThat(photos.total, is(greaterThanOrEqualTo(1)));
+        assertThat(photos.photo, is(not(nullValue(List.class))));
+
+        assertThat(photos.photo, is(not(empty())));
+        for (final Photo photo : photos.photo) {
             assertThat(photo, is(not(nullValue(Photo.class))));
             assertThat(photo.farm, is(not(isEmptyOrNullString())));
             assertThat(photo.id, is(not(isEmptyOrNullString())));
             assertThat(photo.secret, is(not(isEmptyOrNullString())));
             assertThat(photo.server, is(not(isEmptyOrNullString())));
         }
-        verifyPhotoUrl(searchResult.photos.photo.get(0).toUrl());
+        verifyPhotoUrl(photos.photo.get(0).toUrl());
         for (PhotoSize photoSize : PhotoSize.values()) {
-            verifyPhotoUrl(searchResult.photos.photo.get(0).toUrl(photoSize));
+            verifyPhotoUrl(photos.photo.get(0).toUrl(photoSize));
         }
     }
 
