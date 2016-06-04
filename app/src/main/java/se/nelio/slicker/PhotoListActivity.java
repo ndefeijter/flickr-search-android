@@ -2,6 +2,7 @@ package se.nelio.slicker;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -30,6 +31,7 @@ public class PhotoListActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
+        final SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
         final RecyclerView recyclerView = (RecyclerView) findViewById(R.id.photo_list);
         recyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
@@ -40,7 +42,18 @@ public class PhotoListActivity extends AppCompatActivity {
 
                 final PhotosApi photosApi = ServiceGenerator.createService(PhotosApi.class);
                 final int recyclerViewWidth = recyclerView.getWidth();
-                final PhotoRecyclerViewAdapter recyclerAdapter = new PhotoRecyclerViewAdapter(PhotoListActivity.this, photosApi, recyclerViewWidth);
+                final PhotoRecyclerViewAdapter recyclerAdapter = new PhotoRecyclerViewAdapter(PhotoListActivity.this, photosApi, recyclerViewWidth) {
+
+                    @Override
+                    public void onLoadMoreStarted() {
+                        swipeRefreshLayout.setRefreshing(true);
+                    }
+
+                    @Override
+                    public void onLoadMoreFinished() {
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                };
                 recyclerView.setAdapter(recyclerAdapter);
 
                 final SearchView searchView = (SearchView) findViewById(R.id.searchView);
@@ -59,8 +72,16 @@ public class PhotoListActivity extends AppCompatActivity {
                 };
                 searchView.setOnQueryTextListener(queryTextListener);
 
-                // TODO: only load initially, not on rotation.
-                recyclerAdapter.loadMore(true);
+
+                swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        recyclerAdapter.loadMore(true, null != searchView.getQuery() ? searchView.getQuery().toString() : null);
+                    }
+                });
+
+                // TODO: only load initially, cache on rotation so current position, etc. can be maintained.
+                recyclerAdapter.loadMore(true, null != searchView.getQuery() ? searchView.getQuery().toString() : null);
             }
         });
     }

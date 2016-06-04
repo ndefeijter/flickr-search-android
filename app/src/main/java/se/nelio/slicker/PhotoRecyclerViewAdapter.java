@@ -70,7 +70,9 @@ public class PhotoRecyclerViewAdapter extends RecyclerView.Adapter<PhotoViewHold
     }
 
     public void loadMore(final boolean reset, final String query) {
-        // TODO: not already running
+        // TODO: cancel current if already running
+
+        onLoadMoreStarted();
         if (reset) {
             mPage = 0;
             mPages = Integer.MAX_VALUE;
@@ -85,6 +87,7 @@ public class PhotoRecyclerViewAdapter extends RecyclerView.Adapter<PhotoViewHold
             searchCall.enqueue(new Callback<SearchResult>() {
                 @Override
                 public void onResponse(final Call<SearchResult> call, final Response<SearchResult> response) {
+                    onLoadMoreFinished();
                     if (null != response) {
                         final SearchResult searchResult = response.body();
                         if (null != searchResult) {
@@ -96,11 +99,22 @@ public class PhotoRecyclerViewAdapter extends RecyclerView.Adapter<PhotoViewHold
 
                 @Override
                 public void onFailure(Call<SearchResult> call, Throwable t) {
+                    onLoadMoreFinished();
                     // TODO: user friendly message
                     Toast.makeText(mContext, t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
+        } else {
+            onLoadMoreFinished();
         }
+    }
+
+    public void onLoadMoreStarted() {
+        // Empty default implementation
+    }
+
+    public void onLoadMoreFinished() { // TODO: network error, see #13
+        // Empty default implementation
     }
 
     private void loadMoreResult(final boolean reset, final Photos photos) {
