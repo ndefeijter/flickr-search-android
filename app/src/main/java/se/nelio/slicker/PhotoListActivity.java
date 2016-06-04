@@ -33,6 +33,7 @@ public class PhotoListActivity extends AppCompatActivity {
 
         final SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
         final RecyclerView recyclerView = (RecyclerView) findViewById(R.id.photo_list);
+        recyclerView.addOnScrollListener(new PicassoOnScrollListener(this));
         recyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
