@@ -48,6 +48,7 @@ public class PhotoListActivity extends AppCompatActivity {
                     @Override
                     public boolean onQueryTextSubmit(String query) {
                         recyclerAdapter.loadMore(true, query);
+                        searchView.clearFocus();
                         return false;
                     }
 
