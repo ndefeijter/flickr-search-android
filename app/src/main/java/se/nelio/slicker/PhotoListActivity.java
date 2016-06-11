@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -33,6 +34,8 @@ public class PhotoListActivity extends AppCompatActivity {
 
         final SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
         final RecyclerView recyclerView = (RecyclerView) findViewById(R.id.photo_list);
+        final LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.addOnScrollListener(new PicassoOnScrollListener(this));
         recyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
@@ -78,6 +81,15 @@ public class PhotoListActivity extends AppCompatActivity {
                     @Override
                     public void onRefresh() {
                         recyclerAdapter.loadMore(true, null != searchView.getQuery() ? searchView.getQuery().toString() : null);
+                    }
+                });
+
+                recyclerView.addOnScrollListener(new EndlessOnScrollListener(linearLayoutManager) {
+                    @Override
+                    public void onLoadMore(int page, int totalItemsCount) {
+                        // Triggered only when new data needs to be appended to the list
+                        // Add whatever code is needed to append new items to the bottom of the list
+                        recyclerAdapter.loadMore(false, null != searchView.getQuery() ? searchView.getQuery().toString() : null);
                     }
                 });
 

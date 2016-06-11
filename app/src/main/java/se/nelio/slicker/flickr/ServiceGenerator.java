@@ -28,6 +28,7 @@ public class ServiceGenerator {
                                 .addQueryParameter("api_key", "ba87c5f7168b6277aba412a9c0ac4abc")
                                 .addQueryParameter("format", "json")
                                 .addQueryParameter("nojsoncallback", "1")
+                                .addQueryParameter("per_page", "10")
                                 .build();
 
                         // Apply changes to original request

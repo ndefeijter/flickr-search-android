@@ -55,7 +55,7 @@ public class PhotosApiTest {
         assertThat(photos, is(not(nullValue(Photos.class))));
         assertThat(photos.page, is(equalTo(1)));
         assertThat(photos.pages, is(greaterThanOrEqualTo(1)));
-        assertThat(photos.perpage, is(100));
+        assertThat(photos.perpage, is(10));
         assertThat(photos.total, is(greaterThanOrEqualTo(1)));
         assertThat(photos.photo, is(not(nullValue(List.class))));
 
