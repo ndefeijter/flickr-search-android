@@ -17,21 +17,21 @@ public enum PhotoSize {
     Z("z", 640),
     B("b", 1024);
 
-    private final String id;
-    private final int longestSide;
+    private final String mId;
+    private final int mLongestSide;
 
     PhotoSize(final String id, final int longestSide) {
-        this.id = id;
-        this.longestSide = longestSide;
+        this.mId = id;
+        this.mLongestSide = longestSide;
     }
 
     public String id() {
-        return id;
+        return mId;
     }
 
-    public static PhotoSize forWidth(final int width) {
+    public static PhotoSize forLongestSide(final int longestSide) {
         for (final PhotoSize candidate : values()) {
-            if (candidate.longestSide > width) {
+            if (candidate.mLongestSide > longestSide) {
                 return candidate;
             }
         }

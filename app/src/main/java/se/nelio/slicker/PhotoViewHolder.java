@@ -54,15 +54,15 @@ public class PhotoViewHolder extends RecyclerView.ViewHolder {
             mContentView.setImageBitmap(null);
             mContentView.setOnClickListener(null);
         } else {
-            final PhotoSize photoSize = PhotoSize.forWidth(mPhotoWidth);
+            mContentView.getLayoutParams().width = mPhotoWidth;
+            mContentView.getLayoutParams().height = mPhotoWidth;
+
+            final PhotoSize photoSize = PhotoSize.forLongestSide(mPhotoWidth);
             Picasso.with(mView.getContext())
                     .load(mPhoto.toUrl(photoSize))
                     .tag(PicassoOnScrollListener.TAG)
-                    .resize(mPhotoWidth, mPhotoWidth * 2) // TODO: should be based on the actual ratio which we do not yet know (can be obtained using https://www.flickr.com/services/api/flickr.photos.getSizes.html)
-                    .centerInside()
-// https://github.com/square/picasso/issues/457https://github.com/square/picasso/issues/457
-//                        .fit()
-//                        .centerCrop()
+                    .fit()
+                    .centerCrop()
                     .into(mContentView);
             mContentView.setOnClickListener(mOnClickListener);
         }
